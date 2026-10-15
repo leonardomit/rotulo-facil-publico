@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}{{ produto.nome }} — Rótulo Fácil{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'rotulagem:produto_list' %}">Produtos</a></li>
+    <li class="breadcrumb-item active">{{ produto.nome }}</li>
+  </ol>
+</nav>
+
+<div class="row g-4">
+  <!-- Left: Product info -->
+  <div class="col-md-8">
+    <div class="card shadow-sm mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center bg-white">
+        <h4 class="mb-0"><i class="bi bi-box-seam"></i> {{ produto.nome }}
+          <span class="badge bg-secondary ms-2">v{{ produto.versao_atual }}</span>
+        </h4>
+        <a href="{% url 'rotulagem:produto_update' produto.pk %}" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-pencil"></i> Editar
+        </a>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-sm-6">
+            <dl>
+              <dt>Marca</dt><dd>{{ produto.marca }}</dd>
+              <dt>Categoria</dt><dd>
+                <span class="badge {% if produto.is_alimento %}bg-success{% else %}bg-primary{% endif %}">
+                  {{ produto.get_categoria_display }}
+                </span>
+              </dd>
+              <dt>Forma</dt><dd>{{ produto.get_forma_apresentacao_display }}</dd>
+              <dt>Dose</dt><dd>{{ produto.unidades_por_dose }}× | {{ produto.doses_por_embalagem }} doses/emb.</dd>
+              {% if produto.medida_caseira %}<dt>Medida caseira</dt><dd>{{ produto.medida_caseira }}</dd>{% endif %}
+            </dl>
+          </div>
+          <div class="col-sm-6">
+            <dt>Grupos Populacionais</dt>
+            {% for g in grupos %}
+              <span class="badge bg-info text-dark me-1 mb-1">{{ g.nome }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulação -->
+    <div class="card shadow-sm">
+      <div class="card-header d-flex justify-content-between align-items-center bg-white">
+        <h5 class="mb-0"><i class="bi bi-list-ol"></i> Formulação</h5>
+        <a href="{% url 'rotulagem:produto_formulacao' produto.pk %}" class="btn btn-sm btn-outline-primary">
+          <i class="bi bi-pencil"></i> Editar Formulação
+        </a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>#</th><th>Matéria-Prima</th><th>Constituinte</th>
+              <th>Qtde/unidade (g)</th><th>Overage (%)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in formulacao %}
+            <tr>
+              <td class="text-muted">{{ item.ordem }}</td>
+              <td>{{ item.materia_prima.nome_comercial }}</td>
+              <td><span class="badge bg-light text-dark">{{ item.materia_prima.constituinte.nome }}</span></td>
+              <td><code>{{ item.quantidade_g }}</code></td>
+              <td>{{ item.overage_pct }}%</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center text-muted">
+              Formulação vazia. <a href="{% url 'rotulagem:produto_formulacao' produto.pk %}">Adicionar itens</a>
+            </td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Quick actions -->
+  <div class="col-md-4">
+    <div class="card shadow-sm mb-3">
+      <div class="card-header bg-white"><h6 class="mb-0">Ações Rápidas</h6></div>
+      <div class="list-group list-group-flush">
+        <a href="{% url 'rotulagem:produto_calculo' produto.pk %}" class="list-group-item list-group-item-action">
+          <i class="bi bi-calculator text-primary"></i> Calcular Nutrientes
+        </a>
+        <a href="{% url 'rotulagem:produto_relatorio' produto.pk %}" class="list-group-item list-group-item-action">
+          <i class="bi bi-clipboard-check text-warning"></i> Relatório de Conformidade
+        </a>
+        <a href="{% url 'rotulagem:produto_rotulo' produto.pk %}" class="list-group-item list-group-item-action">
+          <i class="bi bi-file-earmark-text text-success"></i> Prévia do Rótulo
+        </a>
+        <a href="{% url 'rotulagem:produto_imprimir' produto.pk %}" target="_blank" class="list-group-item list-group-item-action">
+          <i class="bi bi-file-pdf text-danger"></i> Imprimir / Salvar PDF
+        </a>
+      </div>
+    </div>
+
+    {% if versoes %}
+    <div class="card shadow-sm">
+      <div class="card-header bg-white"><h6 class="mb-0">Histórico de Versões</h6></div>
+      <ul class="list-group list-group-flush">
+        {% for v in versoes %}
+        <li class="list-group-item py-1">
+          <small>
+            <strong>v{{ v.versao_numero }}</strong> — {{ v.created_at|date:"d/m/Y H:i" }}
+            {% if v.motivo %}<br><span class="text-muted">{{ v.motivo }}</span>{% endif %}
+          </small>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

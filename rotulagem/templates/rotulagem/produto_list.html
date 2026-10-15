@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Produtos — Rótulo Fácil{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2><i class="bi bi-box-seam"></i> Produtos</h2>
+  <a href="{% url 'rotulagem:produto_create' %}" class="btn btn-success">
+    <i class="bi bi-plus-circle"></i> Novo Produto
+  </a>
+</div>
+
+<div class="card shadow-sm mb-3">
+  <div class="card-body py-2">
+    <form method="get" class="row g-2 align-items-center">
+      <div class="col-md-6">
+        <input type="text" name="q" value="{{ q }}" class="form-control"
+               placeholder="Buscar por nome ou marca…">
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-search"></i> Buscar</button>
+      </div>
+      {% if q %}
+      <div class="col-auto">
+        <a href="{% url 'rotulagem:produto_list' %}" class="btn btn-outline-danger btn-sm">
+          <i class="bi bi-x"></i> Limpar
+        </a>
+      </div>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Nome</th><th>Marca</th><th>Forma</th>
+          <th>Dose</th><th>Grupos</th><th>v.</th><th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in produtos %}
+        <tr>
+          <td>
+            <a href="{% url 'rotulagem:produto_detail' p.pk %}" class="fw-semibold text-decoration-none">{{ p.nome }}</a>
+            {% if not p.ativo %}<span class="badge bg-secondary ms-1">inativo</span>{% endif %}
+          </td>
+          <td>{{ p.marca }}</td>
+          <td><span class="badge {% if p.is_alimento %}bg-success{% else %}bg-primary{% endif %} me-1">{{ p.get_categoria_display }}</span><span class="badge bg-light text-dark">{{ p.get_forma_apresentacao_display }}</span></td>
+          <td>{{ p.unidades_por_dose }}× / {{ p.doses_por_embalagem }} doses</td>
+          <td>
+            {% for g in p.grupos_populacionais.all %}
+              <span class="badge bg-info text-dark me-1">{{ g.nome|truncatechars:15 }}</span>
+            {% endfor %}
+          </td>
+          <td><small class="text-muted">v{{ p.versao_atual }}</small></td>
+          <td>
+            <div class="btn-group btn-group-sm">
+              <a href="{% url 'rotulagem:produto_formulacao' p.pk %}" class="btn btn-outline-primary" title="Formulação"><i class="bi bi-pencil"></i></a>
+              <a href="{% url 'rotulagem:produto_calculo' p.pk %}" class="btn btn-outline-info" title="Calcular"><i class="bi bi-calculator"></i></a>
+              <a href="{% url 'rotulagem:produto_relatorio' p.pk %}" class="btn btn-outline-warning" title="QA"><i class="bi bi-clipboard-check"></i></a>
+              <a href="{% url 'rotulagem:produto_rotulo' p.pk %}" class="btn btn-outline-success" title="Rótulo"><i class="bi bi-file-earmark-text"></i></a>
+              <a href="{% url 'rotulagem:produto_imprimir' p.pk %}" target="_blank" class="btn btn-outline-danger" title="Imprimir / PDF"><i class="bi bi-file-pdf"></i></a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center py-4 text-muted">
+          Nenhum produto encontrado.
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if is_paginated %}
+<nav class="mt-3">
+  <ul class="pagination justify-content-center">
+    {% if page_obj.has_previous %}
+    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ q }}">‹</a></li>
+    {% endif %}
+    <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+    {% if page_obj.has_next %}
+    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ q }}">›</a></li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}
+{% endblock %}

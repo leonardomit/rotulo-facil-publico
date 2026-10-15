@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block title %}{{ object|default:"Nova Matéria-Prima" }} — Rótulo Fácil{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-9">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'rotulagem:materia_prima_list' %}">Matérias-Primas</a></li>
+        <li class="breadcrumb-item active">{{ object|default:"Nova" }}</li>
+      </ol>
+    </nav>
+
+    <div class="card shadow-sm">
+      <div class="card-header bg-white">
+        <h4 class="mb-0"><i class="bi bi-eyedropper"></i>
+          {% if object %}Editar: {{ object.nome_comercial }}{% else %}Nova Matéria-Prima{% endif %}
+        </h4>
+      </div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          {% crispy form %}
+
+          <hr class="my-4">
+          <h5><i class="bi bi-clipboard2-data"></i> Composição Nutricional — por 100 g
+            <span class="badge bg-success ms-1">Alimentos</span>
+          </h5>
+          <p class="text-muted small mb-3">
+            Preencha para matérias-primas usadas em <strong>alimentos</strong>
+            (ex.: maca, gengibre, psyllium, chá verde solúvel). É a base do cálculo
+            da tabela nutricional conforme RDC 429/2020 + IN 75/2020.
+            Pode ficar em branco para matérias-primas usadas apenas em suplementos.
+          </p>
+          {% crispy composicao_form %}
+
+          <button type="submit" class="btn btn-primary mt-3">
+            Salvar Matéria-Prima
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

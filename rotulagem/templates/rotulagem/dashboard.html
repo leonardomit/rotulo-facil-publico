@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Rótulo Fácil{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+  <div class="col">
+    <h2><i class="bi bi-speedometer2"></i> Dashboard</h2>
+    {% if lista_vigente %}
+      <span class="badge bg-success">Lista vigente: {{ lista_vigente.versao }}</span>
+    {% else %}
+      <span class="badge bg-danger"><i class="bi bi-exclamation-triangle"></i> Nenhuma lista regulatória vigente!</span>
+    {% endif %}
+  </div>
+  <div class="col-auto">
+    <a href="{% url 'rotulagem:produto_create' %}" class="btn btn-success">
+      <i class="bi bi-plus-circle"></i> Novo Produto
+    </a>
+  </div>
+</div>
+
+<!-- Stats row -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm text-center p-3">
+      <div class="fs-2 fw-bold text-success">{{ total_produtos }}</div>
+      <div class="text-muted small">Produtos Ativos</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm text-center p-3">
+      <div class="fs-2 fw-bold text-primary">{{ total_materias }}</div>
+      <div class="text-muted small">Matérias-Primas</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm text-center p-3">
+      <div class="fs-2 fw-bold text-info">{{ total_constituintes }}</div>
+      <div class="text-muted small">Constituintes Autorizados</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card border-0 shadow-sm text-center p-3 nota-lupa">
+      <div class="fs-5 fw-bold text-warning"><i class="bi bi-exclamation-triangle-fill"></i></div>
+      <div class="text-muted small">Suplementos: <strong>ISENTOS</strong> de lupa frontal</div>
+    </div>
+  </div>
+</div>
+
+<!-- Products table -->
+<div class="card shadow-sm">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0"><i class="bi bi-box-seam"></i> Produtos Recentes</h5>
+    <a href="{% url 'rotulagem:produto_list' %}" class="btn btn-sm btn-outline-secondary">Ver todos</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Produto</th>
+          <th>Marca</th>
+          <th>Forma</th>
+          <th>Versão</th>
+          <th>Conformidade</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for produto in produtos %}
+        {% with status=conformity|default_if_none:""|dictsort:produto.pk %}
+        <tr>
+          <td>
+            <a href="{% url 'rotulagem:produto_detail' produto.pk %}" class="fw-semibold text-decoration-none">
+              {{ produto.nome }}
+            </a>
+          </td>
+          <td>{{ produto.marca }}</td>
+          <td><span class="badge {% if produto.is_alimento %}bg-success{% else %}bg-primary{% endif %} me-1">{{ produto.get_categoria_display }}</span><span class="badge bg-secondary">{{ produto.get_forma_apresentacao_display }}</span></td>
+          <td><span class="badge bg-light text-dark">v{{ produto.versao_atual }}</span></td>
+          <td>
+            {% with s=conformity|default_if_none:"" %}
+            {% if conformity %}
+              {% with cs=conformity|dictsort:produto.pk %}
+              {% if conformity|length > 0 %}
+                {% with c=conformity %}
+                  {% comment %}Access via template filter workaround{% endcomment %}
+                {% endwith %}
+              {% endif %}
+              {% endwith %}
+            {% endif %}
+            <!-- Conformity badge rendered via custom logic -->
+            <span class="badge
+              {% if conformity|length >= 0 %}
+                bg-secondary
+              {% endif %}
+            ">—</span>
+            {% endwith %}
+          </td>
+          <td>
+            <div class="btn-group btn-group-sm">
+              <a href="{% url 'rotulagem:produto_calculo' produto.pk %}" class="btn btn-outline-primary" title="Calcular">
+                <i class="bi bi-calculator"></i>
+              </a>
+              <a href="{% url 'rotulagem:produto_relatorio' produto.pk %}" class="btn btn-outline-warning" title="QA">
+                <i class="bi bi-clipboard-check"></i>
+              </a>
+              <a href="{% url 'rotulagem:produto_rotulo' produto.pk %}" class="btn btn-outline-success" title="Rótulo">
+                <i class="bi bi-file-earmark-text"></i>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% endwith %}
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted py-4">
+          Nenhum produto cadastrado ainda.
+          <a href="{% url 'rotulagem:produto_create' %}">Criar o primeiro</a>
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

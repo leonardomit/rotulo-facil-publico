@@ -1,0 +1,6 @@
+<div class="alert alert-info py-2 mb-0">
+  <strong>{{ mp.nome_comercial }}</strong><br>
+  Constituinte: {{ mp.constituinte.nome }} ({{ mp.constituinte.get_tipo_display }})<br>
+  Fator de conversão: <strong>{{ mp.fator_conversao }}%</strong> de {{ mp.constituinte.nome }} por g de {{ mp.nome_comercial }}<br>
+  Unidade declarada: {{ mp.constituinte.unidade_medida }}
+</div>

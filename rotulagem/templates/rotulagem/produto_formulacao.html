@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block title %}Formulação: {{ object.nome }} — Rótulo Fácil{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'rotulagem:produto_list' %}">Produtos</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'rotulagem:produto_detail' object.pk %}">{{ object.nome }}</a></li>
+    <li class="breadcrumb-item active">Formulação</li>
+  </ol>
+</nav>
+
+<div class="row g-4">
+  <!-- Formulation editor -->
+  <div class="col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white">
+        <h5 class="mb-0"><i class="bi bi-list-ol"></i> Formulação — {{ object.nome }}</h5>
+      </div>
+      <div class="card-body">
+
+        <!-- Quick-add form (HTMX) -->
+        <div class="card bg-light mb-3">
+          <div class="card-body">
+            <h6>Adicionar Ingrediente</h6>
+            <form hx-post="{% url 'rotulagem:formulacao_add' object.pk %}"
+                  hx-target="#formulacao-list"
+                  hx-swap="beforeend"
+                  hx-on::after-request="this.reset()">
+              {% csrf_token %}
+              <div class="row g-2">
+                <div class="col-md-5">
+                  <select name="materia_prima" class="form-select" required>
+                    <option value="">-- Matéria-prima --</option>
+                    {% for mp in materias_primas %}
+                    <option value="{{ mp.pk }}">{{ mp.nome_comercial }} ({{ mp.fator_conversao }}% {{ mp.constituinte.nome }})</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="col-md-3">
+                  <input type="number" name="quantidade_g" class="form-control" step="0.000001"
+                         placeholder="g/unidade" required min="0">
+                </div>
+                <div class="col-md-2">
+                  <input type="number" name="overage_pct" class="form-control" step="0.01"
+                         placeholder="Overage %" value="0" min="0" max="100">
+                </div>
+                <div class="col-md-2">
+                  <button type="submit" class="btn btn-success w-100">
+                    <span class="htmx-indicator spinner-border spinner-border-sm"></span>
+                    <i class="bi bi-plus-circle"></i> Add
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Live list -->
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead class="table-light">
+              <tr>
+                <th>Ordem</th><th>Matéria-Prima</th><th>Constituinte</th>
+                <th>Qtde/unidade (g)</th><th>Overage (%)</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="formulacao-list">
+              {% for item in object.formulacao.all %}
+              {% include "rotulagem/partials/formulacao_row.html" %}
+              {% empty %}
+              <tr id="empty-row"><td colspan="6" class="text-center text-muted py-3">
+                Nenhum ingrediente adicionado ainda.
+              </td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Full form save (for metadata/overage edits) -->
+        <form method="post">
+          {% csrf_token %}
+          {{ formulacao_formset.management_form }}
+          {% for f in formulacao_formset %}{{ f.as_p }}{% endfor %}
+          <div class="d-none"><!-- Hidden formset for Django validation --></div>
+        </form>
+      </div>
+      <div class="card-footer bg-white d-flex justify-content-between">
+        <a href="{% url 'rotulagem:produto_detail' object.pk %}" class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-left"></i> Voltar
+        </a>
+        <a href="{% url 'rotulagem:produto_calculo' object.pk %}" class="btn btn-primary">
+          <i class="bi bi-calculator"></i> Calcular Nutrientes
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Info panel -->
+  <div class="col-lg-4">
+    <div class="card shadow-sm mb-3">
+      <div class="card-header bg-white"><h6 class="mb-0">Resumo do Produto</h6></div>
+      <div class="card-body">
+        <dl class="mb-0">
+          <dt>Forma</dt><dd>{{ object.get_forma_apresentacao_display }}</dd>
+          <dt>Unidades/dose</dt><dd>{{ object.unidades_por_dose }}</dd>
+          <dt>Doses/embalagem</dt><dd>{{ object.doses_por_embalagem }}</dd>
+          {% if object.medida_caseira %}<dt>Medida caseira</dt><dd>{{ object.medida_caseira }}</dd>{% endif %}
+        </dl>
+      </div>
+    </div>
+    <div class="alert alert-warning">
+      <strong><i class="bi bi-info-circle"></i> Overage:</strong>
+      Sobredosagem para garantir a dose declarada ao longo do shelf life.
+      Ex: 10% = formulação com 10% a mais do que o declarado.
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Remove empty-row when items are added
+  document.body.addEventListener('htmx:afterSwap', function(e) {
+    const emptyRow = document.getElementById('empty-row');
+    if (emptyRow) emptyRow.remove();
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,16 @@
+.env
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+__pycache__/
+*.pyc
+logs/
+.DS_Store
+
+# Claude Code — settings.json é versionado, o local não
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+.vercel
+# .env.local vem do `vercel link`. Regra específica: um `.env*` genérico
+# passaria a ignorar o .env.example, que é versionado de propósito.
+.env.local

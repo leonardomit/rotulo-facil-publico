@@ -1,0 +1,17 @@
+<tr id="item-{{ item.pk }}">
+  <td class="text-muted">{{ item.ordem }}</td>
+  <td>{{ item.materia_prima.nome_comercial }}</td>
+  <td><span class="badge bg-light text-dark">{{ item.materia_prima.constituinte.nome }}</span></td>
+  <td><code>{{ item.quantidade_g }}</code></td>
+  <td>{{ item.overage_pct }}%</td>
+  <td>
+    <button type="button"
+            hx-delete="{% url 'rotulagem:formulacao_delete' item.pk %}"
+            hx-target="#item-{{ item.pk }}"
+            hx-swap="outerHTML"
+            hx-confirm="Remover {{ item.materia_prima.nome_comercial }}?"
+            class="btn btn-sm btn-outline-danger">
+      <i class="bi bi-trash"></i>
+    </button>
+  </td>
+</tr>

@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+{% block title %}Relatório QA: {{ produto.nome }} — Rótulo Fácil{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'rotulagem:produto_list' %}">Produtos</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'rotulagem:produto_detail' produto.pk %}">{{ produto.nome }}</a></li>
+    <li class="breadcrumb-item active">Relatório de Conformidade</li>
+  </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h3><i class="bi bi-clipboard-check"></i> Relatório de Conformidade</h3>
+    <div class="text-muted small">Lista: {{ lista.versao }} — {{ lista.fonte }}</div>
+  </div>
+  <div>
+    {% if aprovado %}
+      <span class="badge bg-success fs-6 me-2"><i class="bi bi-check-circle"></i> APROVADO</span>
+    {% else %}
+      <span class="badge bg-danger fs-6 me-2"><i class="bi bi-x-circle"></i> PENDÊNCIAS</span>
+    {% endif %}
+    <a href="{% url 'rotulagem:produto_rotulo' produto.pk %}" class="btn btn-success">
+      <i class="bi bi-file-earmark-text"></i> Ver Rótulo
+    </a>
+  </div>
+</div>
+
+{% if relatorio_alimento %}
+<!-- ================= ALIMENTO — RDC 429/2020 + IN 75/2020 ================= -->
+
+{% for aviso in relatorio_alimento.avisos %}
+<div class="alert alert-warning">
+  <i class="bi bi-exclamation-triangle"></i> {{ aviso }}
+</div>
+{% empty %}
+<div class="alert alert-success">
+  <i class="bi bi-check-circle"></i>
+  Todas as matérias-primas possuem composição nutricional cadastrada.
+</div>
+{% endfor %}
+
+{% if relatorio_alimento.lupa.selos %}
+<div class="alert alert-dark">
+  <i class="bi bi-search"></i>
+  <strong>Rotulagem frontal obrigatória:</strong>
+  {% for selo in relatorio_alimento.lupa.selos %}
+    <span class="badge bg-dark ms-1">{{ selo }}</span>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white">
+    <h5 class="mb-0"><i class="bi bi-search"></i> Análise da Lupa "ALTO EM" (RDC 429/2020)</h5>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Status</th>
+          <th>Nutriente</th>
+          <th>Valor por {{ relatorio_alimento.base }}</th>
+          <th>Limite</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in relatorio_alimento.lupa.analise %}
+        <tr class="{% if a.atingido %}table-danger{% else %}table-success{% endif %}">
+          <td>
+            {% if a.atingido %}
+              <span class="badge bg-dark"><i class="bi bi-search"></i> ALTO EM — selo obrigatório</span>
+            {% else %}
+              <span class="badge bg-success"><i class="bi bi-check"></i> Abaixo do limite</span>
+            {% endif %}
+          </td>
+          <td><strong>{{ a.nutriente }}</strong></td>
+          <td><code>{{ a.valor_por_100 }} {{ a.unidade }}</code></td>
+          <td>≥ {{ a.limite|floatformat:"-1" }} {{ a.unidade }}/100{% if relatorio_alimento.base_liquida %}ml{% else %}g{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white">
+    <h5 class="mb-0"><i class="bi bi-boxes"></i> Matérias-Primas da Formulação</h5>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Matéria-prima</th>
+          <th>Massa por porção</th>
+          <th>Composição nutricional</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for mp in relatorio_alimento.detalhes_materias_primas %}
+        <tr class="{% if not mp.tem_composicao %}table-warning{% endif %}">
+          <td><strong>{{ mp.materia_prima }}</strong></td>
+          <td><code>{{ mp.massa_por_porcao_g|floatformat:"-3" }} g</code></td>
+          <td>
+            {% if mp.tem_composicao %}
+              <span class="badge bg-success"><i class="bi bi-check"></i> Cadastrada</span>
+              {% if mp.origem_energia %}<small class="text-muted ms-1">Energia: {{ mp.origem_energia }}</small>{% endif %}
+            {% else %}
+              <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle"></i> Pendente</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="alert alert-secondary">
+  <i class="bi bi-info-circle"></i>
+  Alimentos seguem a RDC 429/2020 e a IN 75/2020: tabela nutricional com dupla
+  declaração (por {{ relatorio_alimento.base }} e por porção), %VD sobre a dieta
+  de 2.000 kcal e rotulagem nutricional frontal quando os limites forem atingidos.
+</div>
+
+{% else %}
+<!-- Summary counts -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card border-success text-center p-3">
+      <div class="fs-3 fw-bold text-success">{{ totais.ok }}</div>
+      <div class="text-muted small"><i class="bi bi-check-circle text-success"></i> Conforme</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card border-danger text-center p-3">
+      <div class="fs-3 fw-bold text-danger">{{ totais.acima_maximo }}</div>
+      <div class="text-muted small"><i class="bi bi-arrow-up-circle text-danger"></i> Acima do Máximo</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card border-warning text-center p-3">
+      <div class="fs-3 fw-bold text-warning">{{ totais.abaixo_minimo }}</div>
+      <div class="text-muted small"><i class="bi bi-arrow-down-circle text-warning"></i> Abaixo do Mínimo</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card border-secondary text-center p-3">
+      <div class="fs-3 fw-bold text-secondary">{{ totais.sem_limite }}</div>
+      <div class="text-muted small"><i class="bi bi-question-circle"></i> Sem Limite Cadastrado</div>
+    </div>
+  </div>
+</div>
+
+<!-- Per-group results -->
+{% for grupo_nome, violacoes in relatorio.items %}
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white d-flex justify-content-between">
+    <h5 class="mb-0"><i class="bi bi-people"></i> {{ grupo_nome }}</h5>
+    {% with ok_count=0 %}
+    {% for v in violacoes %}{% if v.status == 'ok' %}{% endif %}{% endfor %}
+    {% endwith %}
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Status</th>
+          <th>Constituinte</th>
+          <th>Valor Calculado</th>
+          <th>Mínimo</th>
+          <th>Máximo</th>
+          <th>Observação</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for v in violacoes %}
+        <tr class="
+          {% if v.status == 'ok' %}table-success
+          {% elif v.status == 'acima_maximo' %}table-danger
+          {% elif v.status == 'abaixo_minimo' %}table-warning
+          {% elif v.status == 'sem_limite' %}table-light
+          {% else %}table-secondary
+          {% endif %}
+        ">
+          <td>
+            {% if v.status == 'ok' %}
+              <span class="badge bg-success"><i class="bi bi-check"></i> Conforme</span>
+            {% elif v.status == 'acima_maximo' %}
+              <span class="badge bg-danger"><i class="bi bi-arrow-up"></i> Acima do máx.</span>
+            {% elif v.status == 'abaixo_minimo' %}
+              <span class="badge bg-warning text-dark"><i class="bi bi-arrow-down"></i> Abaixo do mín.</span>
+            {% elif v.status == 'sem_limite' %}
+              <span class="badge bg-secondary"><i class="bi bi-question"></i> Sem limite</span>
+            {% else %}
+              <span class="badge bg-dark">{{ v.status }}</span>
+            {% endif %}
+          </td>
+          <td><strong>{{ v.constituinte }}</strong></td>
+          <td>
+            {% if v.valor is not None %}
+              <code>{{ v.valor }} {{ v.unidade }}</code>
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            {% if v.limite_minimo is not None %}
+              {{ v.limite_minimo }} {{ v.unidade }}
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            {% if v.limite_maximo is not None %}
+              {{ v.limite_maximo }} {{ v.unidade }}
+            {% else %}—{% endif %}
+          </td>
+          <td class="text-muted small">{{ v.mensagem }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted">Sem dados de conformidade.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endfor %}
+
+<!-- Nota importante -->
+<div class="alert nota-lupa">
+  <strong><i class="bi bi-exclamation-triangle text-warning"></i> Nota Regulatória:</strong>
+  Suplementos alimentares são <strong>ISENTOS</strong> de rotulagem nutricional frontal
+  (lupa "ALTO EM"). <em>Não gerar esse elemento em hipótese alguma.</em>
+  Referência: RDC 727/2022, Art. 43.
+</div>
+{% endif %}
+{% endblock %}

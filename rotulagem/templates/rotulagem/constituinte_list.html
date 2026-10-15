@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Constituintes — Rótulo Fácil{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2><i class="bi bi-table"></i> Constituintes Autorizados</h2>
+  <a href="/admin/rotulagem/constituinte/add/" class="btn btn-outline-secondary" target="_blank">
+    <i class="bi bi-gear"></i> Gerenciar no Admin
+  </a>
+</div>
+
+<div class="card shadow-sm mb-3">
+  <div class="card-body py-2">
+    <form method="get" class="row g-2">
+      <div class="col-md-4">
+        <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Buscar…">
+      </div>
+      <div class="col-md-3">
+        <select name="tipo" class="form-select">
+          <option value="">— Todos os tipos —</option>
+          {% for val, label in tipos %}
+          <option value="{{ val }}" {% if tipo_filtro == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <select name="lista" class="form-select">
+          <option value="">— Todas as listas —</option>
+          {% for l in listas %}
+          <option value="{{ l.pk }}" {% if lista_filtro == l.pk|stringformat:"s" %}selected{% endif %}>
+            {{ l.versao }}{% if l.vigente %} (vigente){% endif %}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-search"></i></button>
+      </div>
+      {% if q or tipo_filtro or lista_filtro %}
+      <div class="col-auto">
+        <a href="{% url 'rotulagem:constituinte_list' %}" class="btn btn-outline-secondary"
+           title="Limpar filtros"><i class="bi bi-x-lg"></i></a>
+      </div>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-sm table-hover mb-0">
+      <thead class="table-light">
+        <tr><th>Nome</th><th>Tipo</th><th>Unidade</th><th>Autorizado</th><th>Lista Reg.</th><th>Anexo</th></tr>
+      </thead>
+      <tbody>
+        {% for c in constituintes %}
+        <tr>
+          <td>
+            <strong>{{ c.nome }}</strong>
+            {% if c.nome_cientifico %}<br><small class="text-muted fst-italic">{{ c.nome_cientifico }}</small>{% endif %}
+          </td>
+          <td><span class="badge bg-light text-dark">{{ c.get_tipo_display }}</span></td>
+          <td><code>{{ c.unidade_medida }}</code></td>
+          <td>
+            {% if c.autorizado %}
+              <span class="badge bg-success"><i class="bi bi-check-lg"></i> Autorizado</span>
+            {% else %}
+              <span class="badge bg-danger"><i class="bi bi-x-lg"></i> Não autorizado</span>
+            {% endif %}
+          </td>
+          <td class="text-muted small">{{ c.lista_regulatoria.versao }}</td>
+          <td class="text-muted small">{{ c.anexo_referencia|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted py-4">Nenhum constituinte encontrado.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% include "rotulagem/partials/paginacao.html" %}
+{% endblock %}

@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% block title %}Prévia do Rótulo: {{ produto.nome }} — Rótulo Fácil{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'rotulagem:produto_list' %}">Produtos</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'rotulagem:produto_detail' produto.pk %}">{{ produto.nome }}</a></li>
+    <li class="breadcrumb-item active">Prévia do Rótulo</li>
+  </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3><i class="bi bi-file-earmark-text"></i> Prévia do Rótulo</h3>
+  <a href="{% url 'rotulagem:produto_imprimir' produto.pk %}" target="_blank" class="btn btn-danger">
+    <i class="bi bi-file-pdf"></i> Imprimir / Salvar PDF
+  </a>
+</div>
+
+{% if rotulo.categoria == 'alimento' %}
+  <!-- AVISOS / LUPA — ALIMENTOS -->
+  {% for aviso in rotulo.avisos %}
+  <div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle"></i> {{ aviso }}
+  </div>
+  {% endfor %}
+  {% if rotulo.lupa.selos %}
+  <div class="alert alert-dark mb-4">
+    <i class="bi bi-search fs-5"></i>
+    <strong>ROTULAGEM NUTRICIONAL FRONTAL OBRIGATÓRIA (RDC 429/2020):</strong>
+    {% for selo in rotulo.lupa.selos %}
+      <span class="badge bg-dark border border-light ms-1 fs-6">🔍 {{ selo }}</span>
+    {% endfor %}
+    <div class="small mt-1">Os selos acima devem constar no painel frontal da embalagem.</div>
+  </div>
+  {% endif %}
+{% else %}
+<!-- AVISO LUPA -->
+<div class="alert nota-lupa mb-4">
+  <i class="bi bi-exclamation-triangle-fill text-warning fs-5"></i>
+  <strong>SUPLEMENTOS: ISENTOS DE ROTULAGEM NUTRICIONAL FRONTAL (LUPA "ALTO EM")</strong><br>
+  <small>{{ rotulo.nota_lupa }}</small>
+</div>
+{% endif %}
+
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+
+    <!-- Label preview card -->
+    <div class="card shadow label-preview">
+      <div class="card-header bg-dark text-white text-center">
+        <h4 class="mb-0">{{ produto.nome }}</h4>
+        <div class="text-light">{{ produto.marca }}</div>
+      </div>
+      <div class="card-body">
+
+        <!-- Denominação legal -->
+        <p class="text-center fw-bold border-bottom pb-2">
+          {{ rotulo.denominacao_legal }}
+        </p>
+
+        {% if rotulo.categoria == 'alimento' %}
+        <!-- Tabela Nutricional — ALIMENTOS (RDC 429/2020 + IN 75/2020) -->
+        <h6 class="text-uppercase fw-bold mt-3">Informação Nutricional</h6>
+        <p class="text-muted small mb-1">
+          Porções por embalagem: {{ rotulo.produto.porcoes_por_embalagem }}<br>
+          Porção: {{ rotulo.produto.porcao }}
+        </p>
+        <table class="table table-sm table-bordered mb-0">
+          <thead class="table-dark">
+            <tr>
+              <th></th>
+              <th class="text-end">{{ rotulo.tabela_nutricional.base }}</th>
+              <th class="text-end">Porção</th>
+              <th class="text-end">%VD*</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for n in rotulo.tabela_nutricional.nutrientes %}
+            <tr>
+              <td>{{ n.nome }}</td>
+              <td class="text-end">{{ n.por_100|floatformat:"-1" }} {{ n.unidade }}</td>
+              <td class="text-end">{{ n.por_porcao|floatformat:"-1" }} {{ n.unidade }}</td>
+              <td class="text-end">
+                {% if n.pct_vd is not None %}{{ n.pct_vd|floatformat:"0" }}{% else %}**{% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <p class="text-muted" style="font-size:0.7rem;">
+          * Percentual de Valores Diários fornecidos pela porção com base em
+          uma dieta de 2.000 kcal. ** VD não estabelecido.
+        </p>
+
+        {% else %}
+        <!-- Tabela Nutricional -->
+        <h6 class="text-uppercase fw-bold mt-3">Informação Nutricional</h6>
+        <p class="text-muted small">
+          Porção: {{ rotulo.produto.unidades_por_dose }}
+          {{ rotulo.produto.forma_apresentacao }}{% if rotulo.produto.unidades_por_dose != 1 %}(s){% endif %}
+          {% if rotulo.produto.medida_caseira %}({{ rotulo.produto.medida_caseira }}){% endif %}
+          | {{ rotulo.produto.doses_por_embalagem }} porções por embalagem
+        </h6>
+
+        {% for grupo_nome, tabela in rotulo.tabela_nutricional.items %}
+        <div class="mb-3">
+          {% if rotulo.tabela_nutricional|length > 1 %}
+          <div class="fw-bold text-info small mb-1">
+            <i class="bi bi-people"></i> {{ grupo_nome }}
+          </div>
+          {% endif %}
+          <table class="table table-sm table-bordered mb-0">
+            <thead class="table-dark">
+              <tr>
+                <th>Nutriente</th>
+                <th class="text-end">Qtde./porção</th>
+                <th class="text-end">%VD*</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for nome, dados in tabela.items %}
+              <tr>
+                <td>{{ nome }}</td>
+                <td class="text-end">{{ dados.valor_declarado }} {{ dados.unidade }}</td>
+                <td class="text-end">
+                  {% if dados.pct_vd is not None %}{{ dados.pct_vd }}%{% else %}**{% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <p class="text-muted" style="font-size:0.7rem;">
+            * % Valores Diários de Referência com base em uma dieta de 2.000 kcal ({{ grupo_nome }}).
+            ** VD não estabelecido.
+          </p>
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <!-- Lista de Ingredientes -->
+        <div class="border-top pt-2">
+          <strong>INGREDIENTES:</strong>
+          {{ rotulo.lista_ingredientes|join:", " }}.
+        </div>
+
+        <!-- Alérgenos -->
+        {% if rotulo.alergenos.contem %}
+        <div class="mt-2 border border-danger p-2 rounded">
+          <strong>CONTÉM:</strong> {{ rotulo.alergenos.contem|join:", " }}.
+        </div>
+        {% else %}
+        <div class="mt-2">
+          <strong>ALÉRGENOS:</strong> <span class="text-muted">Não contém alérgenos declaráveis.</span>
+        </div>
+        {% endif %}
+        {% if rotulo.alergenos.pode_conter %}
+        <div class="mt-1">
+          <strong>PODE CONTER:</strong> {{ rotulo.alergenos.pode_conter|join:", " }}.
+        </div>
+        {% endif %}
+
+        <!-- Transgênico -->
+        {% if rotulo.aviso_transgenico %}
+        <div class="mt-2 text-warning fw-bold" style="font-size:0.8rem;">
+          {{ rotulo.aviso_transgenico }}
+        </div>
+        {% endif %}
+
+        <!-- Recomendação de uso -->
+        {% if rotulo.recomendacao_uso %}
+        <div class="mt-2 border-top pt-2">
+          <strong>MODO DE USO:</strong> {{ rotulo.recomendacao_uso }}
+        </div>
+        {% endif %}
+
+        <!-- Alegações -->
+        {% if rotulo.alegacoes %}
+        <div class="mt-2 border-top pt-2">
+          <strong>ALEGAÇÕES FUNCIONAIS / SAÚDE:</strong>
+          <ul class="mb-0 ps-3">
+            {% for alegacao in rotulo.alegacoes %}
+            <li style="font-size:0.8rem;">{{ alegacao }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        <!-- Advertências -->
+        {% if rotulo.advertencias %}
+        <div class="mt-2 border-top pt-2">
+          {% for adv in rotulo.advertencias %}
+          <div class="text-muted" style="font-size:0.78rem;">
+            <i class="bi bi-exclamation-triangle-fill text-warning"></i>
+            {{ adv.texto }}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Dados regulatórios -->
+        <div class="mt-3 border-top pt-2 text-muted" style="font-size:0.7rem;">
+          Lista regulatória: {{ rotulo.lista_regulatoria.versao }} — {{ rotulo.lista_regulatoria.fonte }}<br>
+          Vigência: {{ rotulo.lista_regulatoria.data_vigencia }}
+        </div>
+
+      </div><!-- /card-body -->
+    </div><!-- /card -->
+
+  </div>
+</div>
+{% endblock %}

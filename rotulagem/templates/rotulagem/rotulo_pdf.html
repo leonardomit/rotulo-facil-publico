@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>{{ produto.nome }} — Rótulo</title>
+<style>
+  body { font-family: Arial, sans-serif; font-size: 9pt; margin: 20mm; }
+  h1 { font-size: 14pt; text-align: center; margin-bottom: 2mm; }
+  h2 { font-size: 10pt; text-align: center; color: #555; margin-top: 0; }
+  .denominacao { text-align: center; font-weight: bold; border-bottom: 1px solid #333;
+                  padding-bottom: 3mm; margin-bottom: 3mm; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 3mm; }
+  th { background-color: #333; color: white; padding: 2mm; font-size: 8pt; }
+  td { padding: 1.5mm; border-bottom: 1px solid #ddd; font-size: 8pt; }
+  td.r { text-align: right; }
+  .section-title { font-weight: bold; margin-top: 3mm; margin-bottom: 1mm; font-size: 8pt; text-transform: uppercase; }
+  .alergeno-box { border: 1px solid red; padding: 2mm; margin-top: 2mm; font-weight: bold; }
+  .advertencia { font-size: 7.5pt; color: #555; margin-top: 1mm; }
+  .nota-lupa { background: #fff3cd; border: 1px solid #ffc107; padding: 2mm; margin-bottom: 3mm;
+                font-size: 7pt; text-align: center; }
+  .lupa-box { background: #000; color: #fff; padding: 3mm; margin-bottom: 3mm;
+              text-align: center; font-weight: bold; }
+  .lupa-selo { display: inline-block; border: 1px solid #fff; padding: 1.5mm 3mm;
+               margin: 0 1mm; font-size: 9pt; }
+  .grupo-header { font-weight: bold; font-size: 8pt; color: #336; margin-top: 2mm; }
+  .footer-reg { font-size: 6.5pt; color: #999; border-top: 1px solid #ccc; margin-top: 3mm; padding-top: 1mm; }
+  .barra-impressao { position: sticky; top: 0; background: #212529; color: #fff;
+                     padding: 10px 20px; margin: -20mm -20mm 10mm -20mm;
+                     display: flex; gap: 10px; align-items: center; }
+  .barra-impressao button, .barra-impressao a { font-size: 10pt; padding: 6px 14px;
+                     border-radius: 4px; border: none; cursor: pointer; text-decoration: none; }
+  .barra-impressao button { background: #0d6efd; color: #fff; }
+  .barra-impressao a { background: #6c757d; color: #fff; }
+  .barra-impressao .dica { font-size: 8pt; color: #adb5bd; margin-left: auto; }
+  @media print { .barra-impressao { display: none; } }
+</style>
+</head>
+<body>
+
+{% if modo_impressao %}
+<div class="barra-impressao">
+  <button onclick="window.print()">🖨 Imprimir / Salvar como PDF</button>
+  <a href="{% url 'rotulagem:produto_detail' produto.pk %}">← Voltar</a>
+  <span class="dica">No diálogo de impressão, escolha “Salvar como PDF” como destino.</span>
+</div>
+{% endif %}
+
+{% if rotulo.categoria == 'alimento' %}
+
+{% if rotulo.lupa.selos %}
+<div class="lupa-box">
+  {% for selo in rotulo.lupa.selos %}
+  <span class="lupa-selo">🔍 {{ selo }}</span>
+  {% endfor %}
+  <div style="font-size:6.5pt; font-weight:normal; margin-top:1mm;">
+    Selos obrigatórios no painel frontal — RDC 429/2020
+  </div>
+</div>
+{% endif %}
+
+<h1>{{ produto.nome }}</h1>
+<h2>{{ produto.marca }}</h2>
+
+<div class="denominacao">{{ rotulo.denominacao_legal }}</div>
+
+<div class="section-title">Informação Nutricional</div>
+<p style="font-size:7.5pt; margin:0 0 2mm 0;">
+  Porções por embalagem: {{ rotulo.produto.porcoes_por_embalagem }} |
+  Porção: {{ rotulo.produto.porcao }}
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th>{{ rotulo.tabela_nutricional.base }}</th>
+      <th>Porção</th>
+      <th>%VD*</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for n in rotulo.tabela_nutricional.nutrientes %}
+    <tr>
+      <td>{{ n.nome }}</td>
+      <td class="r">{{ n.por_100|floatformat:"-1" }} {{ n.unidade }}</td>
+      <td class="r">{{ n.por_porcao|floatformat:"-1" }} {{ n.unidade }}</td>
+      <td class="r">{% if n.pct_vd is not None %}{{ n.pct_vd|floatformat:"0" }}{% else %}**{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<p style="font-size:6.5pt; color:#555;">
+  * Percentual de Valores Diários fornecidos pela porção com base em uma dieta de 2.000 kcal.
+  ** VD não estabelecido.
+</p>
+
+{% else %}
+
+<div class="nota-lupa">
+  ⚠ SUPLEMENTO ALIMENTAR — ISENTO DE ROTULAGEM NUTRICIONAL FRONTAL (LUPA) — RDC 727/2022 Art. 43
+</div>
+
+<h1>{{ produto.nome }}</h1>
+<h2>{{ produto.marca }}</h2>
+
+<div class="denominacao">{{ rotulo.denominacao_legal }}</div>
+
+<div class="section-title">Informação Nutricional</div>
+<p style="font-size:7.5pt; margin:0 0 2mm 0;">
+  Porção: {{ rotulo.produto.unidades_por_dose }} {{ rotulo.produto.forma_apresentacao }}
+  {% if rotulo.produto.medida_caseira %}({{ rotulo.produto.medida_caseira }}){% endif %}
+  | {{ rotulo.produto.doses_por_embalagem }} porções por embalagem
+</p>
+
+{% for grupo_nome, tabela in rotulo.tabela_nutricional.items %}
+{% if rotulo.tabela_nutricional|length > 1 %}
+<div class="grupo-header">Grupo: {{ grupo_nome }}</div>
+{% endif %}
+<table>
+  <thead>
+    <tr><th>Nutriente</th><th>Qtde./Porção</th><th>%VD*</th></tr>
+  </thead>
+  <tbody>
+    {% for nome, dados in tabela.items %}
+    <tr>
+      <td>{{ nome }}</td>
+      <td class="r">{{ dados.valor_declarado }} {{ dados.unidade }}</td>
+      <td class="r">{% if dados.pct_vd is not None %}{{ dados.pct_vd }}%{% else %}**{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<p style="font-size:6.5pt; color:#555;">
+  * % VDR com base em dieta de 2.000 kcal ({{ grupo_nome }}).
+  ** VD não estabelecido.
+</p>
+{% endfor %}
+{% endif %}
+
+<div class="section-title">Ingredientes</div>
+<p>{{ rotulo.lista_ingredientes|join:", " }}.</p>
+
+{% if rotulo.alergenos.contem %}
+<div class="alergeno-box">CONTÉM: {{ rotulo.alergenos.contem|join:", " }}.</div>
+{% endif %}
+{% if rotulo.alergenos.pode_conter %}
+<p><strong>PODE CONTER:</strong> {{ rotulo.alergenos.pode_conter|join:", " }}.</p>
+{% endif %}
+
+{% if rotulo.aviso_transgenico %}
+<p style="font-weight:bold; font-size:8pt;">{{ rotulo.aviso_transgenico }}</p>
+{% endif %}
+
+{% if rotulo.recomendacao_uso %}
+<div class="section-title">Modo de Uso</div>
+<p>{{ rotulo.recomendacao_uso }}</p>
+{% endif %}
+
+{% if rotulo.alegacoes %}
+<div class="section-title">Alegações</div>
+<ul>{% for al in rotulo.alegacoes %}<li style="font-size:7.5pt;">{{ al }}</li>{% endfor %}</ul>
+{% endif %}
+
+{% if rotulo.advertencias %}
+<div class="section-title">Advertências</div>
+{% for adv in rotulo.advertencias %}
+<p class="advertencia">⚠ {{ adv.texto }}</p>
+{% endfor %}
+{% endif %}
+
+<div class="footer-reg">
+  Lista Regulatória: {{ rotulo.lista_regulatoria.versao }} — {{ rotulo.lista_regulatoria.fonte }}
+  | Vigência: {{ rotulo.lista_regulatoria.data_vigencia }}
+</div>
+
+</body>
+</html>

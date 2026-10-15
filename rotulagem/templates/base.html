@@ -1,0 +1,589 @@
+{% load static %}<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Rótulo Fácil Suplementos{% endblock %}</title>
+
+  <link rel="icon" href="{% static 'favicon.png' %}" type="image/png" sizes="128x128">
+  <link rel="shortcut icon" href="{% static 'favicon.ico' %}" sizes="any">
+  <link rel="apple-touch-icon" href="{% static 'apple-touch-icon.png' %}">
+
+  <script>
+    /* Resolve o tema antes da primeira pintura. Mesma chave ('fito-theme') dos
+       outros painéis Fito. data-bs-theme aciona o modo escuro nativo do
+       Bootstrap 5.3; data-theme aciona os tokens da paleta Fito. */
+    (function(){try{
+var m=document.cookie.match(/(?:^|;\s*)fito-theme=(dark|light)/);
+var t=m?m[1]:(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+document.documentElement.setAttribute('data-theme',t);
+document.documentElement.setAttribute('data-bs-theme',t);}catch(e){}})();
+  </script>
+  <script src="{% static 'fito-ui.js' %}" defer></script>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+  <style>
+    :root {
+      /* Paleta Fito — mesma identidade do Dash Comercial e Rastreabilidade de Lotes
+         Verde Fito #00996E · Verde Profundo #0D3B2E · Amarelo Sol #FFD100
+         Verde Névoa #DCF0E7 · Areia #F6EFE4 · Grafite Quente #2B2926 */
+      --verde: #00996E;
+      --verde-dark: #007A57;
+      --verde-profundo: #0D3B2E;
+      --verde-light: #DCF0E7;
+      --verde-100: #C2E3D3;
+      --amarelo: #FFD100;
+      --amarelo-dark: #E3BA00;
+      --bg: #F6EFE4;
+      --surface: #FDFAF4;
+      --surface-2: #F3ECDF;
+      --borda: #E7DECC;
+      --borda-forte: #CFC5B0;
+      --texto: #2B2926;
+      --texto-sec: #5C564C;
+      --texto-muted: #8B8377;
+      --vermelho: #C0402E;
+      --vermelho-bg: #F7DED6;
+      --vermelho-dark: #8A3524;
+      --vermelho-borda: #EFC7BC;
+      --amarelo-bg: #FFF6D8; --amarelo-borda: #EFD873;
+      --amarelo-texto: #6B5400; --amarelo-texto-forte: #8A6D00;
+      --verde-light-texto: #0D3B2E;   /* texto sobre superfície Verde Névoa */
+      --info-texto: #4A6B73; --info-borda: #A9C4C9; --info-bg: #E3EFF0;
+      --verde-profundo-hover: #0A2E24;
+      --radius-sm: 6px; --radius: 10px; --radius-lg: 14px;
+      --shadow-sm: 0 1px 3px rgba(43,41,38,.07), 0 1px 2px rgba(43,41,38,.04);
+      --shadow: 0 4px 6px -1px rgba(43,41,38,.07), 0 2px 4px -1px rgba(43,41,38,.04);
+      --shadow-md: 0 10px 15px -3px rgba(13,59,46,.08), 0 4px 6px -2px rgba(43,41,38,.04);
+
+      /* Apelidos usados pelo bloco .fito-* compartilhado (barra de apps) */
+      --surface-1: var(--surface);
+      --surface-accent: var(--verde-light);
+      --text-primary: var(--texto);
+      --text-secondary: var(--texto-sec);
+      --text-heading: var(--verde-light-texto);
+      --border: var(--borda);
+      --border-strong: var(--borda-forte);
+      --brand: var(--verde);
+      --text-muted: var(--texto-muted);
+      --header-bg: rgba(253,250,244,.85);
+    }
+
+    /* Modo noturno — mesmos valores dos outros painéis Fito. O Bootstrap cuida
+       dos próprios componentes via data-bs-theme; aqui só a paleta da marca. */
+    :root[data-theme="dark"] {
+      --verde: #1FB98A;
+      --verde-dark: #3ACFA1;
+      --verde-profundo: #0D3B2E;
+      --verde-light: #16453A;
+      --verde-100: #1D5745;
+      --verde-light-texto: #DCF0E7;
+      --amarelo: #FFD100;
+      --amarelo-dark: #E3BA00;
+      --amarelo-bg: #3B3212; --amarelo-borda: #6B5A1F;
+      --amarelo-texto: #F3D77A; --amarelo-texto-forte: #FFE79A;
+      --bg: #081F18;
+      --surface: #0D362A;
+      --surface-2: #124232;
+      --borda: #1E4C3C;
+      --borda-forte: #2A5A48;
+      --texto: #F6EFE4;
+      --texto-sec: #BCD2C6;
+      --texto-muted: #86A395;
+      --vermelho: #E0705F;
+      --vermelho-bg: #4A211A;
+      --vermelho-dark: #F2A89B;
+      --vermelho-borda: #6B322A;
+      --info-texto: #A9C4C9; --info-borda: #3E5A60; --info-bg: #16323A;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.32), 0 1px 2px rgba(0,0,0,.24);
+      --shadow: 0 4px 6px -1px rgba(0,0,0,.4), 0 2px 4px -1px rgba(0,0,0,.24);
+      --shadow-md: 0 10px 15px -3px rgba(0,0,0,.45), 0 4px 6px -2px rgba(0,0,0,.3);
+      --header-bg: rgba(13,54,42,.85);
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--texto);
+      font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    }
+    h1, h2, h3, h4, h5, h6 { color: var(--verde-light-texto); letter-spacing: -0.01em; }
+    a { color: var(--verde); }
+    a:hover { color: var(--verde-dark); }
+    :focus-visible { outline: 2px solid rgba(0,153,110,.55); outline-offset: 2px; }
+
+    .sidebar { position: sticky; top: 1rem; }
+
+    /* ── Cards ── */
+    .card { background: var(--surface); border: 1px solid var(--borda); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); }
+    .card-hover:hover { box-shadow: var(--shadow); transform: translateY(-2px); transition: all .2s; }
+
+    /* ── Botões ── */
+    .btn-success { background-color: var(--verde) !important; border-color: var(--verde) !important; color: #fff !important; }
+    .btn-success:hover, .btn-success:focus { background-color: var(--verde-dark) !important; border-color: var(--verde-dark) !important; }
+    .btn-outline-success { color: var(--verde) !important; border-color: var(--verde) !important; }
+    .btn-outline-success:hover { background-color: var(--verde) !important; border-color: var(--verde) !important; color: #fff !important; }
+
+    .btn-warning { background-color: var(--amarelo) !important; border-color: var(--amarelo) !important; color: var(--texto) !important; }
+    .btn-warning:hover { background-color: var(--amarelo-dark) !important; border-color: var(--amarelo-dark) !important; }
+    .btn-outline-warning { color: var(--amarelo-texto-forte) !important; border-color: var(--amarelo-dark) !important; }
+    .btn-outline-warning:hover { background-color: var(--amarelo) !important; color: var(--texto) !important; }
+
+    .btn-danger { background-color: var(--vermelho) !important; border-color: var(--vermelho) !important; }
+    .btn-danger:hover { background-color: var(--vermelho-dark) !important; border-color: var(--vermelho-dark) !important; }
+    .btn-outline-danger { color: var(--vermelho) !important; border-color: var(--vermelho) !important; }
+    .btn-outline-danger:hover { background-color: var(--vermelho) !important; color: #fff !important; }
+
+    .btn-primary { background-color: var(--verde-profundo) !important; border-color: var(--verde-profundo) !important; }
+    .btn-primary:hover { background-color: var(--verde-profundo-hover) !important; border-color: var(--verde-profundo-hover) !important; }
+    .btn-outline-primary { color: var(--verde-light-texto) !important; border-color: var(--verde-light-texto) !important; }
+    .btn-outline-primary:hover { background-color: var(--verde-profundo) !important; color: #fff !important; }
+
+    .btn-outline-secondary { color: var(--texto-sec) !important; border-color: var(--borda-forte) !important; }
+    .btn-outline-secondary:hover { background-color: var(--surface-2) !important; color: var(--texto) !important; }
+
+    .btn-outline-info { color: var(--info-texto) !important; border-color: var(--info-borda) !important; }
+    .btn-outline-info:hover { background-color: var(--info-bg) !important; }
+
+    /* ── Badges ── */
+    .badge.bg-success   { background-color: var(--verde) !important; }
+    .badge.bg-warning   { background-color: var(--amarelo) !important; color: var(--texto) !important; }
+    .badge.bg-danger    { background-color: var(--vermelho) !important; }
+    .badge.bg-info      { background-color: var(--surface-2) !important; color: var(--texto-sec) !important; }
+    .badge.bg-secondary { background-color: var(--borda-forte) !important; color: var(--texto) !important; }
+    .badge.bg-light     { background-color: var(--surface-2) !important; color: var(--texto-sec) !important; }
+    .badge.bg-dark      { background-color: var(--verde-profundo) !important; }
+
+    /* ── Alertas ── */
+    .alert-success { background-color: var(--verde-light) !important; border-color: var(--verde-100) !important; color: var(--verde-light-texto) !important; }
+    .alert-warning { background-color: var(--amarelo-bg) !important; border-color: var(--amarelo-borda) !important; color: var(--amarelo-texto) !important; }
+    .alert-danger  { background-color: var(--vermelho-bg) !important; border-color: var(--vermelho-borda) !important; color: var(--vermelho-dark) !important; }
+    .alert-info    { background-color: var(--surface-2) !important; border-color: var(--borda) !important; color: var(--texto-sec) !important; }
+
+    /* ── Tabelas de status (relatório QA) ── */
+    .table-success { --bs-table-bg: var(--verde-light); --bs-table-color: var(--verde-light-texto); }
+    .table-warning { --bs-table-bg: var(--amarelo-bg); --bs-table-color: var(--amarelo-texto); }
+    .table-danger  { --bs-table-bg: var(--vermelho-bg); --bs-table-color: var(--vermelho-dark); }
+    /* O cinza do .table-light/.table-dark é fixo no Bootstrap e não acompanha o
+       tema — sem isso o cabeçalho da tabela fica branco no modo noturno. */
+    .table-light   { --bs-table-bg: var(--surface-2); --bs-table-color: var(--texto); }
+    .table-dark    { --bs-table-bg: var(--verde-profundo); --bs-table-color: #F6EFE4; }
+
+    /* Azul é cor do Bootstrap, não da marca — realinhando ao verde Fito */
+    .text-primary { color: var(--verde-light-texto) !important; }
+    .text-info    { color: var(--verde) !important; }
+    .text-secondary { color: var(--texto-sec) !important; }
+    /* O Bootstrap pinta <code> de rosa por padrão; fora da paleta Fito */
+    code { color: var(--verde); }
+
+    /* ── Bordas de destaque ── */
+    .border-success { border-color: var(--verde) !important; }
+    .border-warning { border-color: var(--amarelo-dark) !important; }
+    .border-danger  { border-color: var(--vermelho) !important; }
+
+    /* ── Fundos sólidos ── */
+    .bg-success   { background-color: var(--verde) !important; }
+    .bg-warning   { background-color: var(--amarelo) !important; }
+    .bg-danger    { background-color: var(--vermelho) !important; }
+    .bg-info      { background-color: var(--surface-2) !important; color: var(--texto-sec) !important; }
+    .bg-secondary { background-color: var(--texto-sec) !important; }
+    .bg-light     { background-color: var(--surface-2) !important; }
+    .bg-dark      { background-color: var(--verde-profundo) !important; }
+    .bg-white     { background-color: var(--surface) !important; }
+
+    /* ── Texto ── */
+    .text-success { color: var(--verde) !important; }
+    .text-warning { color: var(--amarelo-texto-forte) !important; }
+    .text-danger  { color: var(--vermelho) !important; }
+    .text-muted   { color: var(--texto-muted) !important; }
+    .text-dark    { color: var(--texto) !important; }
+
+    /* ── Elementos específicos do domínio, já na paleta Fito ── */
+    .sidebar { position: sticky; top: 1rem; }
+    .conformity-ok    { color: var(--verde); }
+    .conformity-warn  { color: var(--amarelo-texto-forte); }
+    .conformity-error { color: var(--vermelho); }
+    .audit-step { font-family: 'Courier New', monospace; font-size: 0.82rem; }
+    .label-preview { border: 2px solid var(--texto); border-radius: 4px; font-size: 0.85rem; }
+    .label-preview table { font-size: 0.8rem; }
+    .badge-ok    { background-color: var(--verde) !important; }
+    .badge-warn  { background-color: var(--amarelo) !important; color: var(--texto) !important; }
+    .badge-error { background-color: var(--vermelho) !important; }
+    .htmx-indicator { opacity: 0; transition: opacity 200ms ease-in; }
+    .htmx-request .htmx-indicator { opacity: 1; }
+    .htmx-request.htmx-indicator  { opacity: 1; }
+    .nota-lupa { background: var(--amarelo-bg); border-left: 4px solid var(--amarelo-dark); }
+
+    /* ══════════════════════════════════════════════════════════════════
+       Cabeçalho dos painéis de operação
+       Bloco idêntico em lotes-dashboard-v2, painel de OPs e Rótulo Fácil
+       (modelo original: painel de OPs). Ao alterar aqui, replicar nos outros.
+       ══════════════════════════════════════════════════════════════════ */
+    :root {
+      --fito-shell-max: 1536px;
+      --fito-shell-pad: 24px;
+    }
+
+    .fito-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: var(--header-bg);
+      backdrop-filter: blur(12px) saturate(180%);
+      -webkit-backdrop-filter: blur(12px) saturate(180%);
+      border-bottom: 1px solid var(--border);
+    }
+
+    @media (prefers-reduced-transparency: reduce) {
+      .fito-header {
+        background: var(--surface-1);
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+      }
+    }
+
+    .fito-header-inner {
+      max-width: var(--fito-shell-max);
+      margin: 0 auto;
+      padding: 12px var(--fito-shell-pad);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .fito-header-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    /* O quadrado com as iniciais é o mesmo verde da marca nos dois temas */
+    .fito-header-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: #fff;
+      background: linear-gradient(135deg, #0D3B2E, #00996E);
+      flex-shrink: 0;
+    }
+
+    .fito-header-titles { min-width: 0; }
+
+    .fito-header-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .fito-header-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .fito-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    @media screen and (max-width: 768px) {
+      :root { --fito-shell-pad: 14px; }
+    .fito-header-inner { padding: 10px var(--fito-shell-pad); gap: 10px; }
+      .fito-navrow { padding: 0 10px; }
+      .fito-navrow a { padding: 10px 12px; font-size: 0.8rem; }
+    }
+
+
+
+    /* Ícones: traçado que herda a cor do texto e acompanha o tamanho da fonte */
+    .fito-icon {
+      width: 1.05em;
+      height: 1.05em;
+      flex-shrink: 0;
+      vertical-align: -0.15em;
+    }
+
+    /* Área de conteúdo — mesma medida e respiro do painel de OPs */
+    .fito-main {
+      max-width: var(--fito-shell-max);
+      margin: 0 auto;
+      padding: 24px var(--fito-shell-pad);
+    }
+
+    /* Menu de seções — botões soltos e arredondados, "flutuando" (modelo: painel de
+       OPs). Aceita .ativo ou .active para marcar a seção atual, porque cada painel
+       já tinha o seu nome de classe. */
+    .fito-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    /* Linha de abas alinhada com o cabeçalho (mesma largura e recuo), sem barra
+       própria — o menu "flutua" sobre o fundo da página, como no painel de OPs. */
+    .fito-tabs-row {
+      max-width: var(--fito-shell-max);
+      margin: 18px auto 0;
+      padding: 0 var(--fito-shell-pad);
+    }
+
+    .fito-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 36px;
+      padding: 0 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1;
+      white-space: nowrap;
+      cursor: pointer;
+      text-decoration: none;
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border-strong);
+      transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease, box-shadow 200ms ease;
+    }
+
+    .fito-tab:hover {
+      color: var(--text-primary);
+      border-color: var(--text-muted);
+      background: var(--surface-2);
+    }
+
+    .fito-tab.ativo,
+    .fito-tab.active {
+      background: var(--brand);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .fito-tab.ativo:hover,
+    .fito-tab.active:hover {
+      background: var(--brand);
+      color: #fff;
+      box-shadow: var(--shadow-md);
+    }
+
+    @media screen and (max-width: 768px) {
+        .fito-tab { height: 32px; padding: 0 11px; font-size: 11.5px; }
+    }
+
+    /* ══════════════════════════════════════════════════════════════════
+       Barra de apps + modo noturno
+       Bloco idêntico nos 4 painéis Fito (dash-comercial, lotes-dashboard-v2,
+       painel de OPs e Rótulo Fácil). Ao alterar aqui, replicar nos outros.
+       ══════════════════════════════════════════════════════════════════ */
+    .fito-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .fito-app {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      line-height: 1.2;
+      text-decoration: none;
+      white-space: nowrap;
+      border: 1px solid var(--border);
+      background: var(--surface-1);
+      color: var(--text-secondary);
+      transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease, transform 100ms ease;
+    }
+
+    .fito-app:hover {
+      background: var(--surface-2);
+      border-color: var(--border-strong);
+      color: var(--text-primary);
+    }
+
+    .fito-app:active {
+      transform: scale(0.97);
+    }
+
+    /* O app atual não é link — fica marcado como âncora da barra */
+    .fito-app[aria-current="page"] {
+      background: var(--surface-accent);
+      border-color: transparent;
+      color: var(--text-heading);
+      cursor: default;
+    }
+
+    .fito-app-icon {
+      font-size: 0.9em;
+      line-height: 1;
+    }
+
+    .fito-theme-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      line-height: 1;
+      border: 1px solid var(--border);
+      background: var(--surface-1);
+      color: var(--text-secondary);
+      transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 100ms ease;
+    }
+
+    .fito-theme-btn:hover {
+      background: var(--surface-2);
+      border-color: var(--border-strong);
+      color: var(--text-primary);
+    }
+
+    .fito-theme-btn:active {
+      transform: scale(0.94);
+    }
+
+    /* Variante para quando a barra fica sobre o header verde-profundo */
+    .fito-bar--on-dark .fito-app,
+    .fito-bar--on-dark .fito-theme-btn {
+      background: rgba(246, 239, 228, 0.14);
+      border-color: rgba(246, 239, 228, 0.22);
+      color: #F6EFE4;
+    }
+
+    .fito-bar--on-dark .fito-app:hover,
+    .fito-bar--on-dark .fito-theme-btn:hover {
+      background: rgba(246, 239, 228, 0.26);
+      border-color: rgba(246, 239, 228, 0.34);
+      color: #fff;
+    }
+
+    .fito-bar--on-dark .fito-app[aria-current="page"] {
+      background: #F6EFE4;
+      border-color: #F6EFE4;
+      color: #0D3B2E;
+    }
+
+    footer.bg-white { border-top: 1px solid var(--borda) !important; color: var(--texto-muted); }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<header class="fito-header">
+  <div class="fito-header-inner">
+    <div class="fito-header-brand">
+      <div class="fito-header-badge">RF</div>
+      <div class="fito-header-titles">
+        <div class="fito-header-title">Rótulo Fácil</div>
+        <div class="fito-header-sub">Suplementos &amp; Alimentos</div>
+      </div>
+    </div>
+    <div class="fito-header-actions">
+      {% if REGULA_URL %}
+      {% comment %}
+        Atalho para o app irmão. URL absoluta (o Regula está em outro domínio),
+        por isso fica fora da barra de apps do fito-ui.js, que monta endereços
+        por porta no mesmo host.
+      {% endcomment %}
+      <a href="{{ REGULA_URL }}" class="fito-app" title="Abrir o Regula">
+        <i class="bi bi-shield-check fito-app-icon"></i>
+        <span>Regula</span>
+      </a>
+      {% endif %}
+      {% if user.is_authenticated %}
+      <div class="dropdown">
+        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+          <i class="bi bi-person-circle"></i> {{ user.get_short_name|default:user.username }}
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          {# O LogoutView do Django 5 só aceita POST — um link GET devolve 405. #}
+          <li>
+            <form action="{% url 'logout' %}" method="post" class="m-0">
+              {% csrf_token %}
+              <button type="submit" class="dropdown-item">
+                <i class="bi bi-box-arrow-right"></i> Sair
+              </button>
+            </form>
+          </li>
+        </ul>
+      </div>
+      {% endif %}
+      <!-- Preenchida por fito-ui.js: links para os outros painéis + modo noturno -->
+      <div data-fito-bar data-fito-current="rotulo" data-fito-hide="comercial"></div>
+    </div>
+  </div>
+</header>
+
+<nav class="fito-tabs-row fito-tabs" aria-label="Seções">
+  <a href="{% url 'rotulagem:dashboard' %}"
+     class="fito-tab {% if request.resolver_match.url_name == 'dashboard' %}ativo{% endif %}">
+    <i class="bi bi-speedometer2"></i> Dashboard
+  </a>
+  <a href="{% url 'rotulagem:produto_list' %}"
+     class="fito-tab {% if 'produto' in request.resolver_match.url_name %}ativo{% endif %}">
+    <i class="bi bi-box-seam"></i> Produtos
+  </a>
+  <a href="{% url 'rotulagem:materia_prima_list' %}"
+     class="fito-tab {% if 'materia_prima' in request.resolver_match.url_name %}ativo{% endif %}">
+    <i class="bi bi-eyedropper"></i> Matérias-Primas
+  </a>
+  <a href="{% url 'rotulagem:constituinte_list' %}"
+     class="fito-tab {% if 'constituinte' in request.resolver_match.url_name %}ativo{% endif %}">
+    <i class="bi bi-table"></i> Constituintes
+  </a>
+  {% if user.is_staff %}
+  <a href="/admin/" target="_blank" class="fito-tab"><i class="bi bi-gear"></i> Admin</a>
+  {% endif %}
+  <a href="{% url 'password_change' %}" class="fito-tab"><i class="bi bi-key"></i> Senha</a>
+</nav>
+
+<div class="fito-main">
+  {% if messages %}
+    {% for msg in messages %}
+    <div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show" role="alert">
+      {{ msg }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+  {% endif %}
+
+  {% block content %}{% endblock %}
+</div>
+
+<footer class="text-center text-muted py-3 border-top bg-white mt-4">
+  <small>
+    Rótulo Fácil Suplementos &mdash; RDC 243/2018, IN 28/2018, IN 275/2024, RDC 843/2024 &mdash;
+    <strong class="text-danger">Suplementos são isentos de rotulagem nutricional frontal (lupa)</strong>
+  </small>
+</footer>
+
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- HTMX -->
+<script src="https://unpkg.com/htmx.org@1.9.12"></script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>
