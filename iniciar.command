@@ -71,8 +71,9 @@ echo ""
 # Abre o navegador assim que o servidor subir
 ( sleep 3; open "http://localhost:$PORTA" ) &
 
-# 0.0.0.0 = atende também na rede local, não só neste Mac
-$PY manage.py runserver "0.0.0.0:$PORTA"
+# 127.0.0.1 = só este Mac. Para abrir na rede local, troque por 0.0.0.0
+# e inclua o IP em ALLOWED_HOSTS no .env (com DEBUG=False).
+$PY manage.py runserver "127.0.0.1:$PORTA"
 
 echo ""
 read -r -p "Servidor encerrado. Pressione ENTER para fechar..."

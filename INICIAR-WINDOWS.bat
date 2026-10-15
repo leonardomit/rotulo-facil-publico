@@ -72,7 +72,7 @@ echo ============================================================
 echo.
 
 start "" http://localhost:5054
-%PY% manage.py runserver 0.0.0.0:5054
+%PY% manage.py runserver 127.0.0.1:5054
 
 echo.
 pause
